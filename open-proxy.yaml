@@ -1,7 +1,7 @@
 version: 1.0
 api:
   name: lumina-device-api
-  version: 1.0.0
+  version: 2.0.0
   displayName: Lumina Device API (APIs as Code)
   description: LuminaTech device lifecycle API, managed from Git. Each Git tag becomes an API version in Boomi API Control Plane.
   type: REST

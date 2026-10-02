@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "LuminaTech Device Management API",
-    "version": "1.0.0",
-    "description": "REST API for registering, querying, commanding, and updating LuminaTech IoT devices (e.g. the Lumina Hub X2). Provides device lifecycle management, telemetry retrieval, remote command dispatch, and firmware updates for LuminaTech's connected product estate.",
+    "version": "2.0.0",
+    "description": "REST API for registering, querying, commanding, and updating LuminaTech IoT devices (e.g. the Lumina Hub X2). Provides device lifecycle management, telemetry retrieval, remote command dispatch, and firmware updates for LuminaTech's connected product estate. Version 2 adds device location and the cpu_load telemetry metric.",
     "termsOfService": "https://boomichristianbarron.api.mashery.com/ws/rest/luminadevice/terms",
     "contact": {
       "name": "LuminaTech Platform Engineering",
@@ -782,6 +782,12 @@
             "maxLength": 64,
             "pattern": "^org-[a-z0-9-]+$",
             "description": "Owning organization identifier."
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9 ,.\\-]+$",
+            "description": "Installed location of the device (site or city). New in v2."
           }
         },
         "required": [
@@ -837,6 +843,12 @@
             "maxLength": 64,
             "pattern": "^org-[a-z0-9-]+$",
             "description": "Owning organization identifier."
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9 ,.\\-]+$",
+            "description": "Installed location of the device (site or city). New in v2."
           }
         },
         "required": [
@@ -846,7 +858,8 @@
         "example": {
           "model": "Lumina Hub X2",
           "firmwareVersion": "3.4.1",
-          "ownerId": "org-luminatech-001"
+          "ownerId": "org-luminatech-001",
+          "location": "Austin, TX"
         }
       },
       "DeviceList": {
@@ -983,6 +996,7 @@
                 "temperature",
                 "battery",
                 "signal",
+                "cpu_load",
                 "uptime"
               ],
               "description": "Metric name."
