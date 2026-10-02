@@ -1,0 +1,1035 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "LuminaTech Device Management API",
+    "version": "1.0.0",
+    "description": "REST API for registering, querying, commanding, and updating LuminaTech IoT devices (e.g. the Lumina Hub X2). Provides device lifecycle management, telemetry retrieval, remote command dispatch, and firmware updates for LuminaTech's connected product estate.",
+    "termsOfService": "https://boomichristianbarron.api.mashery.com/ws/rest/luminadevice/terms",
+    "contact": {
+      "name": "LuminaTech Platform Engineering",
+      "url": "https://boomichristianbarron.api.mashery.com/ws/rest/luminadevice",
+      "email": "platform-eng@luminatech.example.com"
+    },
+    "license": {
+      "name": "LuminaTech Proprietary",
+      "url": "https://boomichristianbarron.api.mashery.com/ws/rest/luminadevice/license"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://boomichristianbarron.api.mashery.com/ws/rest/luminadevice",
+      "description": "Production (Cloud API Management gateway)",
+      "x-internal": false
+    }
+  ],
+  "tags": [
+    {
+      "name": "Devices",
+      "description": "Device registration and lifecycle operations"
+    },
+    {
+      "name": "Telemetry",
+      "description": "Device telemetry retrieval"
+    },
+    {
+      "name": "Commands",
+      "description": "Remote device command dispatch"
+    },
+    {
+      "name": "Firmware",
+      "description": "Device firmware management"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/devices": {
+      "get": {
+        "operationId": "listDevices",
+        "summary": "List devices",
+        "description": "Returns the registered LuminaTech devices.",
+        "tags": [
+          "Devices"
+        ],
+        "security": [
+          {
+            "OAuth2": [
+              "read:devices"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/LimitParam"
+          },
+          {
+            "$ref": "#/components/parameters/OffsetParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of devices.",
+            "headers": {
+              "RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit-Limit"
+              },
+              "RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimit-Remaining"
+              },
+              "RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimit-Reset"
+              },
+              "Access-Control-Allow-Origin": {
+                "$ref": "#/components/headers/Access-Control-Allow-Origin"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "registerDevice",
+        "summary": "Register a device",
+        "description": "Registers a new LuminaTech device in the platform.",
+        "tags": [
+          "Devices"
+        ],
+        "security": [
+          {
+            "OAuth2": [
+              "write:devices"
+            ]
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The registered device.",
+            "headers": {
+              "RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit-Limit"
+              },
+              "RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimit-Remaining"
+              },
+              "RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimit-Reset"
+              },
+              "Access-Control-Allow-Origin": {
+                "$ref": "#/components/headers/Access-Control-Allow-Origin"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/v1/devices/{deviceId}": {
+      "get": {
+        "operationId": "getDevice",
+        "summary": "Get a device",
+        "description": "Returns a single LuminaTech device by its identifier.",
+        "tags": [
+          "Devices"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested device.",
+            "headers": {
+              "RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit-Limit"
+              },
+              "RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimit-Remaining"
+              },
+              "RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimit-Reset"
+              },
+              "Access-Control-Allow-Origin": {
+                "$ref": "#/components/headers/Access-Control-Allow-Origin"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/v1/devices/{deviceId}/telemetry": {
+      "get": {
+        "operationId": "getTelemetry",
+        "summary": "Get device telemetry",
+        "description": "Returns the latest telemetry readings for a device.",
+        "tags": [
+          "Telemetry"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The latest telemetry for the device.",
+            "headers": {
+              "RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit-Limit"
+              },
+              "RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimit-Remaining"
+              },
+              "RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimit-Reset"
+              },
+              "Access-Control-Allow-Origin": {
+                "$ref": "#/components/headers/Access-Control-Allow-Origin"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Telemetry"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/v1/devices/{deviceId}/commands": {
+      "post": {
+        "operationId": "sendCommand",
+        "summary": "Send a command to a device",
+        "description": "Dispatches a remote command to a device. Requires OAuth 2.0.",
+        "tags": [
+          "Commands"
+        ],
+        "security": [
+          {
+            "OAuth2": [
+              "write:devices"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceIdParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The command was accepted (state=pending).",
+            "headers": {
+              "RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit-Limit"
+              },
+              "RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimit-Remaining"
+              },
+              "RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimit-Reset"
+              },
+              "Access-Control-Allow-Origin": {
+                "$ref": "#/components/headers/Access-Control-Allow-Origin"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/v1/devices/{deviceId}/firmware": {
+      "put": {
+        "operationId": "updateFirmware",
+        "summary": "Update device firmware",
+        "description": "Initiates a firmware update on a device. Requires OAuth 2.0.",
+        "tags": [
+          "Firmware"
+        ],
+        "security": [
+          {
+            "OAuth2": [
+              "write:devices"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceIdParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirmwareUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The device with the new firmware version (status=maintenance while updating).",
+            "headers": {
+              "RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit-Limit"
+              },
+              "RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateLimit-Remaining"
+              },
+              "RateLimit-Reset": {
+                "$ref": "#/components/headers/RateLimit-Reset"
+              },
+              "Access-Control-Allow-Origin": {
+                "$ref": "#/components/headers/Access-Control-Allow-Origin"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key passed in the X-API-Key request header."
+      },
+      "OAuth2": {
+        "type": "oauth2",
+        "description": "OAuth 2.0 Client Credentials flow via Cloud API Management. Access tokens are short-lived (TTL 3600s) and JWT handling conforms to RFC8725 JSON Web Token Best Current Practices.",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://boomichristianbarron.api.mashery.com/luminatech/getToken",
+            "refreshUrl": "https://boomichristianbarron.api.mashery.com/luminatech/getToken",
+            "scopes": {
+              "write:devices": "Dispatch commands and firmware updates to devices",
+              "read:devices": "List registered devices"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "DeviceIdParam": {
+        "name": "deviceId",
+        "in": "path",
+        "required": true,
+        "description": "Unique device identifier (format LT-DEV-#####).",
+        "schema": {
+          "type": "string",
+          "minLength": 11,
+          "maxLength": 32,
+          "pattern": "^LT-DEV-[0-9]{5}$"
+        }
+      },
+      "LimitParam": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "description": "Maximum number of devices to return.",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 50
+        }
+      },
+      "OffsetParam": {
+        "name": "offset",
+        "in": "query",
+        "required": false,
+        "description": "Number of devices to skip for pagination.",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "maximum": 1000000,
+          "default": 0
+        }
+      }
+    },
+    "headers": {
+      "RateLimit-Limit": {
+        "description": "The request quota for the current window.",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      },
+      "RateLimit-Remaining": {
+        "description": "Remaining requests in the current window.",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      },
+      "RateLimit-Reset": {
+        "description": "Seconds until the rate limit window resets.",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "maximum": 86400
+        }
+      },
+      "Retry-After": {
+        "description": "Seconds the client should wait before retrying.",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "maximum": 86400
+        }
+      },
+      "Access-Control-Allow-Origin": {
+        "description": "Indicates whether the response can be shared with the requesting origin.",
+        "schema": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[\\s\\S]*$"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "The request was malformed or failed validation.",
+        "headers": {
+          "RateLimit-Limit": {
+            "$ref": "#/components/headers/RateLimit-Limit"
+          },
+          "RateLimit-Remaining": {
+            "$ref": "#/components/headers/RateLimit-Remaining"
+          },
+          "RateLimit-Reset": {
+            "$ref": "#/components/headers/RateLimit-Reset"
+          },
+          "Access-Control-Allow-Origin": {
+            "$ref": "#/components/headers/Access-Control-Allow-Origin"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentication credentials were missing or invalid.",
+        "headers": {
+          "RateLimit-Limit": {
+            "$ref": "#/components/headers/RateLimit-Limit"
+          },
+          "RateLimit-Remaining": {
+            "$ref": "#/components/headers/RateLimit-Remaining"
+          },
+          "RateLimit-Reset": {
+            "$ref": "#/components/headers/RateLimit-Reset"
+          },
+          "Access-Control-Allow-Origin": {
+            "$ref": "#/components/headers/Access-Control-Allow-Origin"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "The caller is not permitted to perform this operation.",
+        "headers": {
+          "RateLimit-Limit": {
+            "$ref": "#/components/headers/RateLimit-Limit"
+          },
+          "RateLimit-Remaining": {
+            "$ref": "#/components/headers/RateLimit-Remaining"
+          },
+          "RateLimit-Reset": {
+            "$ref": "#/components/headers/RateLimit-Reset"
+          },
+          "Access-Control-Allow-Origin": {
+            "$ref": "#/components/headers/Access-Control-Allow-Origin"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The requested resource was not found.",
+        "headers": {
+          "RateLimit-Limit": {
+            "$ref": "#/components/headers/RateLimit-Limit"
+          },
+          "RateLimit-Remaining": {
+            "$ref": "#/components/headers/RateLimit-Remaining"
+          },
+          "RateLimit-Reset": {
+            "$ref": "#/components/headers/RateLimit-Reset"
+          },
+          "Access-Control-Allow-Origin": {
+            "$ref": "#/components/headers/Access-Control-Allow-Origin"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "The client has exceeded its rate limit.",
+        "headers": {
+          "RateLimit-Limit": {
+            "$ref": "#/components/headers/RateLimit-Limit"
+          },
+          "RateLimit-Remaining": {
+            "$ref": "#/components/headers/RateLimit-Remaining"
+          },
+          "RateLimit-Reset": {
+            "$ref": "#/components/headers/RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "Access-Control-Allow-Origin": {
+            "$ref": "#/components/headers/Access-Control-Allow-Origin"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "An unexpected error occurred on the server.",
+        "headers": {
+          "RateLimit-Limit": {
+            "$ref": "#/components/headers/RateLimit-Limit"
+          },
+          "RateLimit-Remaining": {
+            "$ref": "#/components/headers/RateLimit-Remaining"
+          },
+          "RateLimit-Reset": {
+            "$ref": "#/components/headers/RateLimit-Reset"
+          },
+          "Access-Control-Allow-Origin": {
+            "$ref": "#/components/headers/Access-Control-Allow-Origin"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 10,
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[A-Z0-9_]+$",
+            "description": "A machine-readable error code."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "A human-readable error message.",
+            "pattern": "^[\\s\\S]*$"
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9-]+$",
+            "description": "The request identifier for tracing."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "Device": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 10,
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "minLength": 11,
+            "maxLength": 32,
+            "pattern": "^LT-DEV-[0-9]{5}$",
+            "description": "Unique device identifier."
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9 .\\-]+$",
+            "description": "Device model name."
+          },
+          "firmwareVersion": {
+            "type": "string",
+            "maxLength": 32,
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "description": "Semantic firmware version."
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 16,
+            "enum": [
+              "active",
+              "inactive",
+              "provisioning",
+              "maintenance",
+              "retired"
+            ],
+            "description": "Device lifecycle status."
+          },
+          "lastSeen": {
+            "type": "string",
+            "format": "date-time",
+            "maxLength": 40,
+            "description": "Timestamp the device was last seen (RFC 3339)."
+          },
+          "ownerId": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^org-[a-z0-9-]+$",
+            "description": "Owning organization identifier."
+          }
+        },
+        "required": [
+          "deviceId",
+          "model",
+          "ownerId"
+        ]
+      },
+      "DeviceInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 10,
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "minLength": 11,
+            "maxLength": 32,
+            "pattern": "^LT-DEV-[0-9]{5}$",
+            "description": "Unique device identifier."
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9 .\\-]+$",
+            "description": "Device model name."
+          },
+          "firmwareVersion": {
+            "type": "string",
+            "maxLength": 32,
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "description": "Semantic firmware version."
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 16,
+            "enum": [
+              "active",
+              "inactive",
+              "provisioning",
+              "maintenance",
+              "retired"
+            ],
+            "description": "Device lifecycle status."
+          },
+          "lastSeen": {
+            "type": "string",
+            "format": "date-time",
+            "maxLength": 40,
+            "description": "Timestamp the device was last seen (RFC 3339)."
+          },
+          "ownerId": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^org-[a-z0-9-]+$",
+            "description": "Owning organization identifier."
+          }
+        },
+        "required": [
+          "model",
+          "ownerId"
+        ],
+        "example": {
+          "model": "Lumina Hub X2",
+          "firmwareVersion": "3.4.1",
+          "ownerId": "org-luminatech-001"
+        }
+      },
+      "DeviceList": {
+        "type": "array",
+        "maxItems": 200,
+        "items": {
+          "$ref": "#/components/schemas/Device"
+        },
+        "description": "Registered devices."
+      },
+      "CommandRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 5,
+        "properties": {
+          "type": {
+            "type": "string",
+            "maxLength": 32,
+            "enum": [
+              "reboot",
+              "locate",
+              "factory-reset",
+              "refresh-config"
+            ],
+            "description": "Command to dispatch."
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "maxProperties": 5,
+            "description": "Command-specific options.",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "maxLength": 16,
+                "enum": [
+                  "graceful",
+                  "immediate"
+                ],
+                "description": "Execution mode, e.g. for reboot."
+              },
+              "durationSeconds": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1,
+                "maximum": 3600,
+                "description": "Duration, e.g. for locate."
+              }
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "example": {
+          "type": "reboot",
+          "payload": {
+            "mode": "graceful"
+          }
+        }
+      },
+      "CommandResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 5,
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 32,
+            "enum": [
+              "reboot",
+              "locate",
+              "factory-reset",
+              "refresh-config"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "maxProperties": 5,
+            "description": "Command-specific options.",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "maxLength": 16,
+                "enum": [
+                  "graceful",
+                  "immediate"
+                ],
+                "description": "Execution mode, e.g. for reboot."
+              },
+              "durationSeconds": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1,
+                "maximum": 3600,
+                "description": "Duration, e.g. for locate."
+              }
+            }
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 16,
+            "enum": [
+              "pending",
+              "sent",
+              "acknowledged",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "commandId",
+          "state"
+        ]
+      },
+      "Telemetry": {
+        "type": "array",
+        "maxItems": 500,
+        "description": "Latest telemetry readings.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "type": "string",
+              "maxLength": 32,
+              "enum": [
+                "temperature",
+                "battery",
+                "signal",
+                "uptime"
+              ],
+              "description": "Metric name."
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "maxLength": 40
+            },
+            "unit": {
+              "type": "string",
+              "maxLength": 16,
+              "description": "Unit of measure (e.g. celsius, percent, dBm).",
+              "pattern": "^[A-Za-z%]+$"
+            },
+            "value": {
+              "type": "number",
+              "minimum": -1000000,
+              "maximum": 1000000
+            }
+          },
+          "required": [
+            "metric",
+            "timestamp",
+            "value"
+          ]
+        }
+      },
+      "FirmwareUpdateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 5,
+        "properties": {
+          "firmwareVersion": {
+            "type": "string",
+            "maxLength": 32,
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "description": "Target firmware version."
+          }
+        },
+        "required": [
+          "firmwareVersion"
+        ],
+        "example": {
+          "firmwareVersion": "3.4.2"
+        }
+      }
+    }
+  }
+}

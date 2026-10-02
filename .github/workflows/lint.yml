@@ -1,0 +1,20 @@
+name: Lint API spec
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+jobs:
+  spectral:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Lint openapi.json (OpenAPI + OWASP rules)
+        run: |
+          npm install --no-save @stoplight/spectral-cli @stoplight/spectral-owasp-ruleset
+          npx spectral lint openapi.json --ruleset .spectral.yaml --fail-severity error

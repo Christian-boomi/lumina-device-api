@@ -1,0 +1,4 @@
+# Same rule families ACP scores against: Spectral OpenAPI + OWASP API Security.
+extends:
+  - spectral:oas
+  - "@stoplight/spectral-owasp-ruleset"
