@@ -1,0 +1,80 @@
+name: Publish spec to API Control Plane
+
+# On every version tag, publish openapi.json as a version of the
+# "LuminaTech Device Management API" in Boomi API Control Plane, then gate on its lint score.
+# Run manually (Actions → Run workflow) to publish an existing tag.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to publish (for example v2.0.1)"
+        required: true
+
+env:
+  ACP_API_ID: 02ea5d33-8610-417d-be96-31c797e0b6dd   # LuminaTech Device Management API
+  MIN_SCORE: ${{ vars.ACP_MIN_SCORE || '90' }}       # fail if quality or security drops below this
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: echo "name=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.name }}
+
+      - name: Lint (OpenAPI + OWASP rules)
+        run: |
+          npm install --no-save @stoplight/spectral-cli @stoplight/spectral-owasp-ruleset
+          npx spectral lint openapi.json --ruleset .spectral.yaml --fail-severity error
+
+      - name: Publish to API Control Plane
+        env:
+          ACP_BASE_URL: ${{ secrets.ACP_BASE_URL }}
+          ACP_PAT: ${{ secrets.ACP_PAT }}
+          VERSION: ${{ steps.tag.outputs.name }}
+        run: |
+          set -euo pipefail
+          api="${ACP_BASE_URL%/}/apis/${ACP_API_ID}"
+          auth=(-H "Authorization: Bearer ${ACP_PAT}")
+
+          # One auth check first; stop on 401/403 so a bad token can't trigger repeated failed logins.
+          code=$(curl -s -o /dev/null -w '%{http_code}' "${auth[@]}" "$api")
+          if [ "$code" != 200 ]; then echo "::error::ACP auth/API check returned $code"; exit 1; fi
+
+          # Create the version if it doesn't exist yet.
+          code=$(curl -s -o /dev/null -w '%{http_code}' "${auth[@]}" "$api/versions/$VERSION")
+          if [ "$code" = 404 ]; then
+            body=$(jq -n --arg v "$VERSION" --arg sha "$GITHUB_SHA" \
+              '{name:$v, displayName:$v, status:"DEVELOPMENT", aiGenerated:false,
+                description:("Published from Git tag " + $v + " (" + $sha[0:7] + ")")}')
+            curl -sf "${auth[@]}" -H 'Content-Type: application/json' -X POST -d "$body" "$api/versions" > /dev/null
+            echo "Created version $VERSION"
+          fi
+
+          # Upload the spec (overwrites the version's spec file).
+          curl -sf "${auth[@]}" -X PUT -F "file=@openapi.json;type=application/json" "$api/versions/$VERSION/spec" > /dev/null
+          echo "Uploaded openapi.json to $VERSION"
+
+          # Re-lint in ACP (409 = a lint job is still running) and wait for fresh scores.
+          prev=$(curl -s "${auth[@]}" "$api/versions/$VERSION/spec/info" | jq -r '.lintNumbers.updatedAt // ""')
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "${auth[@]}" -X POST "$api/versions/$VERSION/spec/lintUpdate")
+            [ "$code" != 409 ] && break; sleep 5
+          done
+          for i in $(seq 1 30); do
+            info=$(curl -s "${auth[@]}" "$api/versions/$VERSION/spec/info")
+            now=$(echo "$info" | jq -r '.lintNumbers.updatedAt // ""')
+            [ -n "$now" ] && [ "$now" != "$prev" ] && break; sleep 5
+          done
+          q=$(echo "$info" | jq -r '.lintNumbers.qualityScore'); s=$(echo "$info" | jq -r '.lintNumbers.securityScore')
+          echo "ACP scores for $VERSION: quality $q, security $s (minimum $MIN_SCORE)"
+          echo "### $VERSION published to ACP — quality **$q**, security **$s**" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$q" -lt "$MIN_SCORE" ] || [ "$s" -lt "$MIN_SCORE" ]; then
+            echo "::error::Score below $MIN_SCORE"; exit 1
+          fi
