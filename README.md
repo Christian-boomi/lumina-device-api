@@ -1,4 +1,4 @@
-# ControlPlane — APIs as Code
+# lumina-device-api — APIs as Code
 
 Specs for the LuminaTech POC, managed from Git and imported into Boomi API Control Plane.
 
