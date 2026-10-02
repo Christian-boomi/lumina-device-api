@@ -10,3 +10,5 @@ backend:
 gateway:
   protocol: https
   path: /luminadevice
+documentation:
+  url: https://raw.githubusercontent.com/Christian-boomi/lumina-device-api/v2.0.1/openapi.json
